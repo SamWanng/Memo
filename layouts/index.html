@@ -1,0 +1,25 @@
+{{ define "main" -}}
+<div class="posts">
+  {{- $paginator := .Paginate (where .Site.Pages.ByDate.Reverse "Type" "post") }}
+  {{- range .Paginator.Pages }}
+  {{- if .Title }}
+  <div class="paper" style="view-transition-name: {{ .File.BaseFileName }};">
+    <article class="post">
+      <h2><a href="{{ .Permalink }}">{{ .Title | safeHTML }}</a></h2>
+  {{- else }}
+  <div class="paper shortie">
+    <article class="post">
+  {{- end }}
+      {{ .Content }}
+    </article>
+    <a href="{{ .Permalink }}" class="material-symbols-outlined link">link</a>
+  </div>
+  {{ end }}
+</div>
+
+<div id="ū-ê-bô-ê">
+  <article>
+    {{ .Site.Params.about_me | safeHTML }}
+  </article>
+</div>
+{{- end }}

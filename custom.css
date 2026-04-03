@@ -1,0 +1,252 @@
+/* --- Chikusa Theme Customisation: Tang Lady (大唐红颜) --- */
+:root {
+  /* 基础背景色 - 檀色: 温暖的暖肤色基调，用于网页整体背景 */
+  --background-colour: #e8dcca;
+
+  /* 内容区背景色 - 妆粉: 细腻的暖白，用于文章卡片或主要阅读区 */
+  --paper-colour: #fffbf0;
+
+  /* 文字颜色 - 褐黑: 柔和的眉黛色，用于正文内容 */
+  --foreground-colour: #4a3333;
+
+  /* 主题强调色 - 茜红: 仕女裙摆的红，用于链接、按钮、高亮 */
+  --theme-colour: #cc5d5b;
+  --accent-colour: var(--theme-colour);
+
+  /* 边框颜色 - 藕荷色: 用于分割线或图片边框 */
+  --border-colour: #dcc6c6;
+
+  /* 引用块背景色 - 淡胭脂: 用于 blockquote 或提示框 */
+  --quote-colour: #f9ecec;
+
+  /* 图标颜色与浅底色 */
+  --icon-colour: color-mix(in srgb, var(--theme-colour) 75%, transparent);
+  --milk-colour: var(--background-colour);
+
+  /* 导航图标显隐开关（none | inline-flex 等） */
+  --nav-icon-display: none;
+
+  /* 半色调叠层过渡（与 报纸图片样式.html / dany.works 同源 shader 配套） */
+  --nb-halftone-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --nb-halftone-duration: 220ms;
+}
+
+/* 针对暗色模式的适配建议 (Optional Dark Mode Override) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 这里的颜色需要反转逻辑，若你想在暗黑模式下也保持大唐风，可适当降低亮度 */
+    --background-colour: #2a2222; /* 深檀色 */
+    --paper-colour: #3a2e2e;      /* 深妆粉 */
+    --foreground-colour: #e8dcca; /* 浅檀色作为文字 */
+    --theme-colour: #d97d7b;      /* 提亮后的茜红 */
+    --border-colour: #5a4444;
+    --quote-colour: #4a3333;
+    --icon-colour: color-mix(in srgb, var(--theme-colour) 75%, transparent);
+    --milk-colour: var(--background-colour);
+
+  }
+}
+
+/* --- 强制应用大唐红颜配色 --- */
+
+/* 1. 全局链接 (Links) - 设定为茜红 */
+a, a:visited {
+  color: var(--theme-colour);
+  transition: color 0.3s ease;
+}
+
+/* 2. 链接悬停 (Hover) - 交互反馈 */
+a:hover,
+a:hover > *:not(svg):not(code):not(i) {
+  color: var(--foreground-colour);
+  background-color: transparent;
+  text-decoration: none;
+}
+
+/* 3. 标题 (Headings) - 设定为茜红 */
+h1, h2, h3, h4, h5, h6,
+.post-title,
+.article-title,
+.site-title {
+  color: var(--theme-colour);
+}
+
+/* 特殊处理：如果文章标题本身是个链接，也要强制变红 */
+h1 a, .post-title a {
+  color: var(--theme-colour);
+}
+
+/* 4. 选中文字的效果 (Selection) - 增加精致感 */
+::selection {
+  background: var(--theme-colour);
+  color: var(--paper-colour);
+}
+
+/* --- 导航与菜单 SVG 图标 --- */
+header svg,
+nav svg,
+.site-header svg,
+.menu-icon svg,
+.nav-item svg {
+  display: var(--nav-icon-display);
+  fill: var(--theme-colour);
+  stroke: var(--theme-colour);
+  transition: fill 0.3s ease, stroke 0.3s ease, color 0.3s ease;
+}
+
+header svg path,
+nav svg path {
+  fill: inherit;
+  stroke: inherit;
+}
+
+/* 鼠标悬停时的效果（变为褐黑） */
+header svg:hover,
+nav svg:hover,
+.menu-icon:hover svg {
+  fill: var(--foreground-colour);
+  stroke: var(--foreground-colour);
+  cursor: pointer;
+}
+
+/* 可访问性：键盘聚焦时的轮廓 */
+:focus-visible {
+  outline: 2px solid var(--theme-colour);
+  outline-offset: 2px;
+}
+
+hr {
+  border-top: 1px solid var(--border-colour);
+}
+
+/* --- 图片与嵌入：不撑破 .post / 纸张栏（含 vertical-rl 与 grid figure）--- */
+/* Micro.blog 常见为 <p><img></p>，未包 figure，主题原先只约束了 figure 内 img */
+.post img,
+.post video,
+.post iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* grid 子项默认 min-width:auto，会按图片固有宽度把栏撑开 */
+.post figure {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.post figure img,
+.post figure > svg {
+  max-width: 100%;
+}
+
+/* =============================================================================
+   主时间流：HalftoneDots shader 叠层（逻辑见 static/js/mb-newspaper-halftone.js，
+   参数抄自 报纸图片样式.html / @paper-design/shaders-react）
+   ============================================================================= */
+
+.posts .paper .post .img-wrap {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.posts .paper .post .img-wrap .entry-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.posts .paper .post .shader-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity var(--nb-halftone-duration) var(--nb-halftone-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .posts .paper .post .img-wrap:hover .shader-overlay {
+    opacity: 0;
+  }
+}
+
+.posts .paper .post .img-wrap.img-pressing .shader-overlay {
+  opacity: 0 !important;
+  transition: opacity 150ms var(--nb-halftone-ease) !important;
+}
+
+.posts .paper .post figure figcaption {
+  z-index: 2;
+}
+
+/* 灯箱：原图无半色调 */
+.nb-halftone-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.88);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 280ms var(--nb-halftone-ease),
+    visibility 280ms;
+}
+
+.nb-halftone-lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.nb-halftone-lightbox-inner {
+  max-width: min(920px, 100%);
+  max-height: 90vh;
+  position: relative;
+}
+
+.nb-halftone-lightbox-inner img {
+  display: block;
+  max-width: 100%;
+  max-height: 85vh;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+.nb-halftone-lightbox-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: #c8c8c8;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.nb-halftone-lightbox-close:hover {
+  color: #fff;
+}
+
+.nb-halftone-lightbox-hint {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: #888;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .posts .paper .post .shader-overlay,
+  .nb-halftone-lightbox {
+    transition-duration: 0.01ms !important;
+  }
+}
