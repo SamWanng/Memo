@@ -252,8 +252,10 @@ code {
     p + blockquote, blockquote + p,
     p + pre, pre + p,
     p + ol, ol + p,
-    p + ul, ul + p {
-      margin-block-start: 1rlh;
+    p + ul, ul + p,
+    p + figure, figure + p,
+    p + .img-wrap, .img-wrap + p {
+      margin-block-start: 1lh;
     }
   }
 
@@ -270,6 +272,7 @@ code {
   .post {
     margin-inline: calc(2rlh - 1rem);
     padding-block:  calc(2rlh - 1rem - (0.5rlh - 0.5rem));
+    --post-pad-block: calc(2rlh - 1rem - (0.5rlh - 0.5rem));
 
     h2 { margin-block-end: 1rlh; }
 
@@ -293,6 +296,13 @@ code {
       writing-mode: horizontal-tb;
 
       display: grid;
+      margin-block: 1lh 1.35lh;
+      margin-inline: 0;
+      justify-items: start;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+
       img, &> svg, figcaption, & > .img-wrap {
         grid-row: 1;
         grid-column: 1;
@@ -307,18 +317,18 @@ code {
       }
 
       & > .img-wrap img {
-        width: 100%;
-        height: auto;
         display: block;
       }
 
       img, &> svg {
-        width: 100%;
-        height: auto;
         display: block;
       }
 
       figcaption {
+        align-self: end;
+        justify-self: stretch;
+        padding: 0.45rem 0.55rem 0.52rem;
+        margin: 0;
         opacity: 1;
         transition:
           opacity .3s ease-out;
@@ -329,6 +339,59 @@ code {
         }
       }
     }
+
+    h2 + figure {
+      margin-block-start: 0.65lh;
+    }
+  }
+
+  &:not(.shortie) .post {
+    --post-text-band: calc(30rem - 2 * var(--post-pad-block));
+  }
+
+  &.shortie .post figure {
+    & > .img-wrap img {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+    }
+
+    & > img,
+    & > svg {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+    }
+  }
+
+  &:not(.shortie) .post figure {
+    width: fit-content;
+    max-width: 100%;
+    max-height: var(--post-text-band);
+
+    & > .img-wrap {
+      max-height: inherit;
+      justify-self: start;
+      width: auto;
+      max-width: 100%;
+    }
+
+    & > .img-wrap img {
+      width: auto;
+      max-width: 100%;
+      max-height: var(--post-text-band);
+      height: auto;
+      object-fit: contain;
+    }
+
+    & > img,
+    & > svg {
+      width: auto;
+      max-width: 100%;
+      max-height: var(--post-text-band);
+      height: auto;
+      object-fit: contain;
+    }
   }
 
   pre {
@@ -338,42 +401,126 @@ code {
   }
 }
 
-/* 首页时间流半色调（static/js/mb-newspaper-halftone.js）；内页不注入脚本、无 .img-wrap */
-.posts .paper .post .img-wrap {
+/*
+ * 插图：相框（.img-wrap / figure>img）+ 半色调层交互（首页 .posts 由 mb-newspaper-halftone.js 注入 .img-wrap/.shader-overlay；Permalink 无包裹仍保留相框）
+ */
+.paper .post .img-wrap {
   position: relative;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 0.28rem 0.4rem 0.32rem 0.36rem;
+  border: 0.75px solid color-mix(in srgb, var(--border-colour) 55%, #9a8b6e 45%);
+  box-shadow:
+    0 2px 12px rgba(40, 32, 22, 0.12),
+    0 1px 3px rgba(40, 32, 22, 0.08),
+    inset 0 0 0 1px rgba(255, 252, 245, 0.5);
+}
+
+.paper .post .img-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 0 28px rgba(70, 48, 28, 0.07),
+    inset 0 -6px 20px rgba(45, 32, 18, 0.06);
+}
+
+.paper .post .img-wrap:focus {
+  outline: none;
+}
+
+.paper .post .img-wrap[role="button"] {
+  cursor: zoom-in;
+}
+
+.paper .post p > .img-wrap {
+  margin-block: 1lh 1.25lh;
   display: block;
   max-width: 100%;
 }
 
-.posts .paper .post .img-wrap:focus {
-  outline: none;
+.paper:not(.shortie) .post p > .img-wrap {
+  width: fit-content;
+  max-height: var(--post-text-band);
 }
 
-.posts .paper .post .img-wrap[role="button"] {
-  cursor: zoom-in;
+.paper:not(.shortie) .post p > .img-wrap img {
+  width: auto;
+  max-width: 100%;
+  max-height: var(--post-text-band);
+  height: auto;
+  object-fit: contain;
 }
 
-.posts .paper .post .shader-overlay {
+.paper.shortie .post p > .img-wrap {
+  width: 100%;
+}
+
+.paper.shortie .post p > .img-wrap img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.paper .post .shader-overlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
   pointer-events: none;
   transform: translateZ(0);
   transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .posts .paper .post .img-wrap:hover .shader-overlay {
+  .paper .post .img-wrap:hover .shader-overlay {
     opacity: 0;
   }
 }
 
-.posts .paper .post .img-wrap.img-pressing .shader-overlay {
+.paper .post .img-wrap.img-pressing .shader-overlay {
   opacity: 0 !important;
   transition: opacity 150ms cubic-bezier(0.23, 1, 0.32, 1) !important;
 }
 
-.posts .paper .post .entry-img[loading="lazy"] {
+.paper .post .entry-img[loading="lazy"] {
   background: var(--border-colour);
+}
+
+.paper .post figure > img {
+  border-radius: 0.32rem 0.38rem 0.34rem 0.36rem;
+  border: 0.75px solid color-mix(in srgb, var(--border-colour) 55%, #9a8b6e 45%);
+  box-shadow:
+    0 2px 12px rgba(40, 32, 22, 0.1),
+    0 1px 3px rgba(40, 32, 22, 0.06),
+    inset 0 0 0 1px rgba(255, 252, 245, 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  .paper .post .img-wrap {
+    border-color: color-mix(in srgb, var(--border-colour) 85%, #000 15%);
+    box-shadow:
+      0 3px 16px rgba(0, 0, 0, 0.45),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+
+  .paper .post .img-wrap::after {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+      inset 0 0 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .paper .post figure > img {
+    border-color: color-mix(in srgb, var(--border-colour) 90%, #000 10%);
+    box-shadow:
+      0 3px 14px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
 }
 
 .nb-halftone-lightbox {
@@ -408,7 +555,11 @@ code {
   width: auto;
   height: auto;
   margin: 0 auto;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  border-radius: 0.25rem;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 252, 245, 0.12),
+    inset 0 0 40px rgba(0, 0, 0, 0.15);
 }
 
 .nb-halftone-lightbox-close {
@@ -437,7 +588,7 @@ code {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .posts .paper .post .shader-overlay,
+  .paper .post .shader-overlay,
   .nb-halftone-lightbox {
     transition-duration: 0.01ms !important;
   }
