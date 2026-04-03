@@ -1,12 +1,18 @@
 /**
- * 仅首页：主时间流图片 HalftoneDots（参数同源 dany.works，按显示宽度做窄栏/小图优化）
+ * 仅首页：HalftoneDots（dany.works 同款参数仅适用于「很宽」的图区）。
+ *
+ * Paper Shaders 片元里：cellsPerSide = mix(300., 7., pow(u_size, .7)) / stepMultiplier
+ * → u_size 越小网点越密。dany 用 size=0.2 + gooey，是为 #col-images 类半屏宽准备的；
+ * 显示宽度 ~450px 时仍用 0.2 会过密发糊。窄图用更大的 u_size + soft + 低颗粒。
+ *
+ * @see https://dany.works/
  */
 import React from 'https://esm.sh/react@18';
 import { createRoot } from 'https://esm.sh/react-dom@18/client';
 import { HalftoneDots } from 'https://esm.sh/@paper-design/shaders-react@0.0.72?deps=react@18,react-dom@18';
 
-/** 接近 dany.works 全宽图时的基准（大显示宽度） */
-const shaderPropsWide = {
+/** 与 dany.works 内联脚本一致：仅当图片在页面上实际占宽足够大时使用 */
+const shaderPropsDanyWide = {
   contrast: 0.4, originalColors: false, inverted: false,
   grid: 'hex', radius: 1, size: 0.2, scale: 1,
   grainSize: 0.5, type: 'gooey', fit: 'cover',
@@ -14,26 +20,25 @@ const shaderPropsWide = {
   colorFront: '#2B2B2B', colorBack: '#00000000',
 };
 
-/** 中等栏宽：略放大网点、略减颗粒，避免糊成一团 */
-const shaderPropsMedium = {
-  ...shaderPropsWide,
-  size: 0.26,
-  scale: 1.04,
-  contrast: 0.38,
-  grainSize: 0.46,
-  grainMixer: 0.14,
-  grainOverlay: 0.14,
+/**
+ * 常见栏宽（约 360–719px 显示宽，含 ~450px）：显著增大 u_size → 每边单元格更少、单点更大；
+ * type=soft 比 gooey 少一层 blob smoothstep；颗粒减轻，避免再「抹糊」。
+ */
+const shaderPropsColumn = {
+  contrast: 0.42, originalColors: false, inverted: false,
+  grid: 'hex', radius: 1.12, size: 0.58, scale: 1,
+  grainSize: 0.42, type: 'soft', fit: 'cover',
+  grainMixer: 0.06, grainOverlay: 0.08,
+  colorFront: '#2B2B2B', colorBack: '#00000000',
 };
 
-/** 窄栏 / 小图：更疏的网点 + 更轻的颗粒，报纸感仍可辨认 */
+/** 极窄预览条 / 小手机 */
 const shaderPropsCompact = {
-  ...shaderPropsWide,
-  size: 0.36,
-  scale: 1.12,
-  contrast: 0.34,
-  grainSize: 0.4,
-  grainMixer: 0.07,
-  grainOverlay: 0.09,
+  contrast: 0.4, originalColors: false, inverted: false,
+  grid: 'hex', radius: 1.06, size: 0.7, scale: 1,
+  grainSize: 0.38, type: 'soft', fit: 'cover',
+  grainMixer: 0.03, grainOverlay: 0.04,
+  colorFront: '#2B2B2B', colorBack: '#00000000',
 };
 
 function paperBackgroundColor() {
@@ -140,16 +145,20 @@ async function initShader(wrap) {
 
   const displayW = wrap.getBoundingClientRect().width;
   const base =
-    displayW < 300
+    displayW < 340
       ? shaderPropsCompact
-      : displayW < 440
-        ? shaderPropsMedium
-        : shaderPropsWide;
+      : displayW < 720
+        ? shaderPropsColumn
+        : shaderPropsDanyWide;
+
+  /* 窄图提高 minPixelRatio，在 1x 屏上略抬离屏渲染分辨率，减轻网点锯齿感 */
+  const minPixelRatio = displayW < 340 ? 2.5 : displayW < 720 ? 2.25 : 2;
 
   try {
     const props = {
       ...base,
       image: img.src,
+      minPixelRatio,
       style: {
         width: '100%',
         height: '100%',
