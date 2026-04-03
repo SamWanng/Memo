@@ -338,6 +338,110 @@ code {
   }
 }
 
+/* Halftone overlay on post images (static/js/mb-newspaper-halftone.js, dany.works-style) */
+.paper .post .img-wrap {
+  position: relative;
+  display: block;
+  max-width: 100%;
+}
+
+.paper .post .img-wrap:focus {
+  outline: none;
+}
+
+.paper .post .img-wrap[role="button"] {
+  cursor: zoom-in;
+}
+
+.paper .post .shader-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .paper .post .img-wrap:hover .shader-overlay {
+    opacity: 0;
+  }
+}
+
+.paper .post .img-wrap.img-pressing .shader-overlay {
+  opacity: 0 !important;
+  transition: opacity 150ms cubic-bezier(0.23, 1, 0.32, 1) !important;
+}
+
+.paper .post .entry-img[loading="lazy"] {
+  background: var(--border-colour);
+}
+
+.nb-halftone-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.88);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1), visibility 280ms;
+}
+
+.nb-halftone-lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.nb-halftone-lightbox-inner {
+  max-width: min(920px, 100%);
+  max-height: 90vh;
+  position: relative;
+}
+
+.nb-halftone-lightbox-inner img {
+  display: block;
+  max-width: 100%;
+  max-height: 85vh;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+.nb-halftone-lightbox-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: #b4b4b4;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.nb-halftone-lightbox-close:hover {
+  color: #fff;
+}
+
+.nb-halftone-lightbox-hint {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: #888;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paper .post .shader-overlay,
+  .nb-halftone-lightbox {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @supports (overscroll-behavior:contain) {
   .paper:not(.shortie) .post {
     mask:

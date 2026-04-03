@@ -1,35 +1,25 @@
 /**
- * 主时间流图片：HalftoneDots（抄自 报纸图片样式.html，与 dany.works / @paper-design/shaders-react 同源）
- * 仅首页 .posts 内图片；单篇 permalink 不执行此脚本。
+ * 正文图片：HalftoneDots（与 dany.works / @paper-design/shaders-react 同源参数）
+ * 首页时间流（.posts）与单篇 permalink（.paper.single）内 .post 的图片均处理。
  */
-import React from 'https://esm.sh/react@18.2.0';
-import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
-import { HalftoneDots } from 'https://esm.sh/@paper-design/shaders-react@0.0.72?deps=react@18.2.0,react-dom@18.2.0';
+import React from 'https://esm.sh/react@18';
+import { createRoot } from 'https://esm.sh/react-dom@18/client';
+import { HalftoneDots } from 'https://esm.sh/@paper-design/shaders-react@0.0.72?deps=react@18,react-dom@18';
 
-/** 自 报纸图片样式.html 内联参数 */
 const shaderPropsBase = {
-  contrast: 0.4,
-  originalColors: false,
-  inverted: false,
-  grid: 'hex',
-  radius: 1,
-  size: 0.2,
-  scale: 1,
-  grainSize: 0.5,
-  type: 'gooey',
-  fit: 'cover',
-  grainMixer: 0.2,
-  grainOverlay: 0.2,
-  colorFront: '#2B2B2B',
-  colorBack: '#00000000',
-  style: { width: '100%', height: '100%', backgroundColor: '#fffbf0' },
+  contrast: 0.4, originalColors: false, inverted: false,
+  grid: 'hex', radius: 1, size: 0.2, scale: 1,
+  grainSize: 0.5, type: 'gooey', fit: 'cover',
+  grainMixer: 0.2, grainOverlay: 0.2,
+  colorFront: '#2B2B2B', colorBack: '#00000000',
+  style: { width: '100%', height: '100%', backgroundColor: '#F2F1E8' },
 };
 
 function paperBackgroundColor() {
   const v = getComputedStyle(document.documentElement)
     .getPropertyValue('--paper-colour')
     .trim();
-  return v || '#fffbf0';
+  return v || '#F2F1E8';
 }
 
 function isImageUrl(href) {
@@ -91,6 +81,7 @@ function injectLightbox() {
 
 const shaderRegistry = new Map();
 
+// Pause WebGL RAF when off-screen; rootMargin pre-renders ~150px before enter.
 const visibilityObserver = new IntersectionObserver(
   (entries) => {
     entries.forEach(({ target, isIntersecting }) => {
@@ -125,7 +116,7 @@ async function initShader(wrap) {
   try {
     const props = {
       ...shaderPropsBase,
-      image: img.currentSrc || img.src,
+      image: img.src,
       style: {
         ...shaderPropsBase.style,
         backgroundColor: paperBackgroundColor(),
@@ -184,27 +175,39 @@ function wrapImage(img) {
   return wrap;
 }
 
+function postArticleRoots() {
+  const fromStream = document.querySelectorAll('.posts .paper .post');
+  if (fromStream.length) return Array.from(fromStream);
+  const single = document.querySelector('.paper.single .post');
+  return single ? [single] : [];
+}
+
 function initTimeline() {
-  const postsRoot = document.querySelector('.posts');
-  if (!postsRoot) return;
+  const articles = postArticleRoots();
+  if (!articles.length) return;
 
   injectLightbox();
 
-  const images = postsRoot.querySelectorAll('.paper .post img');
   const wraps = [];
-  images.forEach((img) => {
-    const w = wrapImage(img);
-    if (w) wraps.push(w);
+  articles.forEach((article) => {
+    article.querySelectorAll('img').forEach((img) => {
+      const w = wrapImage(img);
+      if (w) wraps.push(w);
+    });
   });
 
   wraps.forEach((w) => initShader(w));
 
+  const touchRoot =
+    document.querySelector('.posts') || document.querySelector('.paper.single');
+  if (!touchRoot) return;
+
   let pressed = null;
-  postsRoot.addEventListener(
+  touchRoot.addEventListener(
     'touchstart',
     (e) => {
       const wrap = e.target.closest?.('.img-wrap');
-      if (wrap && postsRoot.contains(wrap)) {
+      if (wrap && touchRoot.contains(wrap)) {
         pressed = wrap;
         wrap.classList.add('img-pressing');
       }
@@ -217,8 +220,8 @@ function initTimeline() {
       pressed = null;
     }
   };
-  postsRoot.addEventListener('touchend', releasePress, { passive: true });
-  postsRoot.addEventListener('touchcancel', releasePress, { passive: true });
+  touchRoot.addEventListener('touchend', releasePress, { passive: true });
+  touchRoot.addEventListener('touchcancel', releasePress, { passive: true });
 }
 
 if (document.readyState === 'loading') {
