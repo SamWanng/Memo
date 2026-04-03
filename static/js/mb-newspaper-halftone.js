@@ -15,8 +15,9 @@ import { HalftoneDots } from 'https://esm.sh/@paper-design/shaders-react@0.0.72?
 const shaderPropsDanyWide = {
   contrast: 0.4, originalColors: false, inverted: false,
   grid: 'hex', radius: 1, size: 0.2, scale: 1,
-  grainSize: 0.5, type: 'gooey', fit: 'cover',
-  grainMixer: 0.2, grainOverlay: 0.2,
+  /* grainSize↑→片元里噪声 UV 更「稀」= 颗粒更粗；0.2～0.35 更细 */
+  grainSize: 0.28, type: 'gooey', fit: 'cover',
+  grainMixer: 0.12, grainOverlay: 0.12,
   colorFront: '#2B2B2B', colorBack: '#00000000',
 };
 
@@ -27,8 +28,8 @@ const shaderPropsDanyWide = {
 const shaderPropsColumn = {
   contrast: 0.42, originalColors: false, inverted: false,
   grid: 'hex', radius: 1.12, size: 0.58, scale: 1,
-  grainSize: 0.42, type: 'soft', fit: 'cover',
-  grainMixer: 0.06, grainOverlay: 0.08,
+  grainSize: 0.14, type: 'soft', fit: 'cover',
+  grainMixer: 0.03, grainOverlay: 0.04,
   colorFront: '#2B2B2B', colorBack: '#00000000',
 };
 
@@ -36,8 +37,8 @@ const shaderPropsColumn = {
 const shaderPropsCompact = {
   contrast: 0.4, originalColors: false, inverted: false,
   grid: 'hex', radius: 1.06, size: 0.7, scale: 1,
-  grainSize: 0.38, type: 'soft', fit: 'cover',
-  grainMixer: 0.03, grainOverlay: 0.04,
+  grainSize: 0.1, type: 'soft', fit: 'cover',
+  grainMixer: 0.015, grainOverlay: 0.02,
   colorFront: '#2B2B2B', colorBack: '#00000000',
 };
 
