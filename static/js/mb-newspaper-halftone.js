@@ -1,18 +1,39 @@
 /**
- * 正文图片：HalftoneDots（与 dany.works / @paper-design/shaders-react 同源参数）
- * 首页时间流（.posts）与单篇 permalink（.paper.single）内 .post 的图片均处理。
+ * 仅首页：主时间流图片 HalftoneDots（参数同源 dany.works，按显示宽度做窄栏/小图优化）
  */
 import React from 'https://esm.sh/react@18';
 import { createRoot } from 'https://esm.sh/react-dom@18/client';
 import { HalftoneDots } from 'https://esm.sh/@paper-design/shaders-react@0.0.72?deps=react@18,react-dom@18';
 
-const shaderPropsBase = {
+/** 接近 dany.works 全宽图时的基准（大显示宽度） */
+const shaderPropsWide = {
   contrast: 0.4, originalColors: false, inverted: false,
   grid: 'hex', radius: 1, size: 0.2, scale: 1,
   grainSize: 0.5, type: 'gooey', fit: 'cover',
   grainMixer: 0.2, grainOverlay: 0.2,
   colorFront: '#2B2B2B', colorBack: '#00000000',
-  style: { width: '100%', height: '100%', backgroundColor: '#F2F1E8' },
+};
+
+/** 中等栏宽：略放大网点、略减颗粒，避免糊成一团 */
+const shaderPropsMedium = {
+  ...shaderPropsWide,
+  size: 0.26,
+  scale: 1.04,
+  contrast: 0.38,
+  grainSize: 0.46,
+  grainMixer: 0.14,
+  grainOverlay: 0.14,
+};
+
+/** 窄栏 / 小图：更疏的网点 + 更轻的颗粒，报纸感仍可辨认 */
+const shaderPropsCompact = {
+  ...shaderPropsWide,
+  size: 0.36,
+  scale: 1.12,
+  contrast: 0.34,
+  grainSize: 0.4,
+  grainMixer: 0.07,
+  grainOverlay: 0.09,
 };
 
 function paperBackgroundColor() {
@@ -113,12 +134,25 @@ async function initShader(wrap) {
     return;
   }
 
+  await new Promise((r) => {
+    requestAnimationFrame(() => requestAnimationFrame(r));
+  });
+
+  const displayW = wrap.getBoundingClientRect().width;
+  const base =
+    displayW < 300
+      ? shaderPropsCompact
+      : displayW < 440
+        ? shaderPropsMedium
+        : shaderPropsWide;
+
   try {
     const props = {
-      ...shaderPropsBase,
+      ...base,
       image: img.src,
       style: {
-        ...shaderPropsBase.style,
+        width: '100%',
+        height: '100%',
         backgroundColor: paperBackgroundColor(),
       },
     };
@@ -175,32 +209,21 @@ function wrapImage(img) {
   return wrap;
 }
 
-function postArticleRoots() {
-  const fromStream = document.querySelectorAll('.posts .paper .post');
-  if (fromStream.length) return Array.from(fromStream);
-  const single = document.querySelector('.paper.single .post');
-  return single ? [single] : [];
-}
-
 function initTimeline() {
-  const articles = postArticleRoots();
-  if (!articles.length) return;
+  const postsRoot = document.querySelector('.posts');
+  if (!postsRoot) return;
 
   injectLightbox();
 
   const wraps = [];
-  articles.forEach((article) => {
-    article.querySelectorAll('img').forEach((img) => {
-      const w = wrapImage(img);
-      if (w) wraps.push(w);
-    });
+  postsRoot.querySelectorAll('.paper .post img').forEach((img) => {
+    const w = wrapImage(img);
+    if (w) wraps.push(w);
   });
 
   wraps.forEach((w) => initShader(w));
 
-  const touchRoot =
-    document.querySelector('.posts') || document.querySelector('.paper.single');
-  if (!touchRoot) return;
+  const touchRoot = postsRoot;
 
   let pressed = null;
   touchRoot.addEventListener(

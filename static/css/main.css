@@ -338,22 +338,22 @@ code {
   }
 }
 
-/* Halftone overlay on post images (static/js/mb-newspaper-halftone.js, dany.works-style) */
-.paper .post .img-wrap {
+/* 首页时间流半色调（static/js/mb-newspaper-halftone.js）；内页不注入脚本、无 .img-wrap */
+.posts .paper .post .img-wrap {
   position: relative;
   display: block;
   max-width: 100%;
 }
 
-.paper .post .img-wrap:focus {
+.posts .paper .post .img-wrap:focus {
   outline: none;
 }
 
-.paper .post .img-wrap[role="button"] {
+.posts .paper .post .img-wrap[role="button"] {
   cursor: zoom-in;
 }
 
-.paper .post .shader-overlay {
+.posts .paper .post .shader-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -361,17 +361,17 @@ code {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .paper .post .img-wrap:hover .shader-overlay {
+  .posts .paper .post .img-wrap:hover .shader-overlay {
     opacity: 0;
   }
 }
 
-.paper .post .img-wrap.img-pressing .shader-overlay {
+.posts .paper .post .img-wrap.img-pressing .shader-overlay {
   opacity: 0 !important;
   transition: opacity 150ms cubic-bezier(0.23, 1, 0.32, 1) !important;
 }
 
-.paper .post .entry-img[loading="lazy"] {
+.posts .paper .post .entry-img[loading="lazy"] {
   background: var(--border-colour);
 }
 
@@ -436,7 +436,7 @@ code {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .paper .post .shader-overlay,
+  .posts .paper .post .shader-overlay,
   .nb-halftone-lightbox {
     transition-duration: 0.01ms !important;
   }
